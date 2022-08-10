@@ -53,6 +53,14 @@ add address=$IPv4WireGuardBridgeAddress interface=$BridgeName network=$IPv4WireG
 /ip route
 add dst-address=$IPv4SubnetP2P gateway=$WireGuardClientInterfaceName
 add dst-address=0.0.0.0/0 gateway=$WireGuardClientInterfaceName routing-table=$RouteTableName
+
+/ip firewall filter
+add action=accept chain=input comment="Accept established,related" connection-state=established,related
+add action=accept chain=input dst-port=$IPv4WireGuardClientListenPort protocol=udp
+add action=drop chain=input comment="Drop invalid" connection-state=invalid
+add action=accept chain=forward comment="Accept established,related" connection-state=established,related
+add action=drop chain=forward comment="Drop invalid" connection-state=invalid
+add action=accept chain=forward out-interface=$WireGuardClientInterfaceName src-address=$IPv4SubnetLocal
 /ip firewall nat
 add action=masquerade chain=srcnat out-interface=$WireGuardClientInterfaceName src-address=$IPv4SubnetP2P
 add action=masquerade chain=srcnat out-interface=$WireGuardClientInterfaceName src-address=$IPv4SubnetLocal
